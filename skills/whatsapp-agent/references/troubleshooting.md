@@ -96,7 +96,19 @@ cd ~/whatsapp-agent && echo "אמור PONG" | claude -p --output-format json \
 ```bash
 ~/.composio/composio connections list
 ```
-כל מה שנדרש חייב `ACTIVE`. אם לא — המשתמש מחבר בדשבורד: https://dashboard.composio.dev
+כל מה שנדרש חייב `ACTIVE`.
+
+| סטטוס | מה זה אומר |
+|---|---|
+| `ACTIVE` | תקין |
+| `EXPIRED` | **החיבור פג תוקף.** קורה מעצמו אחרי זמן — זו לא תקלה בסוכן. המשתמש נכנס לדשבורד ולוחץ Reconnect |
+| `INITIALIZING` | חיבור חצי-גמור, בדרך כלל מ-`composio link` שרץ בלי טרמינל. להסיר ולחבר מהדשבורד |
+
+חיבור פג תוקף מתבטא בסוכן כ"אין לי גישה למייל" — בדוק את הסטטוס לפני שאתה מחפש
+במקום אחר. תיקון: https://dashboard.composio.dev → Reconnect.
+
+⚠️ שים לב: `connections list` מראה גם חיבורים ישנים שכבר לא בשימוש. אם יש שני
+חיבורים לאותה מערכת, אחד `ACTIVE` ואחד לא — זה בסדר. הבעיה היא רק כשאין אף `ACTIVE`.
 
 ---
 
