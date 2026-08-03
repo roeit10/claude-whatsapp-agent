@@ -1,6 +1,6 @@
 ---
 name: whatsapp-agent-doctor
-description: Diagnose a WhatsApp agent that is not working — no replies, wrong replies, "something went wrong", OAuth errors, duplicate messages, or the agent answering without using its tools. Runs an ordered set of checks against Green API, the lock, the folder, Claude Code and Composio, and reports what is broken and how to fix it. Use whenever the user says the agent stopped working, is stuck, or behaves oddly.
+description: Diagnose a WhatsApp agent that is not working — no replies, wrong replies, "something went wrong", OAuth errors, duplicate messages, or the agent answering without using its tools. Runs an ordered set of checks against Green API, the lock, the folder, Claude Code and Composio, and reports what is broken and how to fix it. Use whenever the user says the agent stopped working, is stuck, or behaves oddly — "הסוכן לא עונה", "משהו לא עובד", "תריץ doctor על הסוכן", "the agent is broken".
 ---
 
 # אבחון סוכן וואטסאפ

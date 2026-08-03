@@ -1,6 +1,6 @@
 ---
 name: whatsapp-agent-setup
-description: Set up a personal WhatsApp agent on the user's own computer — connects a dedicated WhatsApp number through Green API to Claude Code running locally, locked so it only ever answers its owner. Use when the user wants to build a WhatsApp assistant/bot, connect WhatsApp to Claude Code, or says things like "תחבר לי את הוואטסאפ", "בוא נבנה סוכן וואטסאפ", "set up my whatsapp agent". Handles everything — the user only clicks links in a browser and scans a QR code.
+description: Set up a personal WhatsApp agent on the user's own computer — connects a dedicated WhatsApp number through Green API to Claude Code running locally, locked so it only ever answers its owner. Use when the user wants to build or install a WhatsApp assistant/bot or connect WhatsApp to Claude Code — "תתקין לי סוכן וואטסאפ", "תקים לי סוכן וואטסאפ", "תחבר לי את הוואטסאפ", "בוא נבנה סוכן וואטסאפ", "set up my whatsapp agent", "install the whatsapp agent". This is about building the AGENT ITSELF, not about copying skill files into a project — if the user just asked to install these skills from a repo, that is already done; do not re-run it. Handles everything — the user only clicks links in a browser and scans a QR code.
 ---
 
 # הקמת סוכן וואטסאפ אישי

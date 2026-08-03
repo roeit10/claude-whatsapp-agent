@@ -1,6 +1,6 @@
 ---
 name: whatsapp-agent-connect-app
-description: Connect Gmail, Google Calendar, Monday, Airtable and 1000+ other apps to the WhatsApp agent through Composio, and verify the connection actually works from inside the agent's own folder. Use when the user wants the agent to read email, manage the calendar, or reach any external system — "תחבר לו את המייל", "שיראה לי את היומן", "connect gmail to the agent" — or when the agent replies that it has no access to something.
+description: Connect Gmail, Google Calendar, Monday, Airtable and 1000+ other apps to the WhatsApp agent through Composio, and verify the connection actually works from inside the agent's own folder. Use when the user wants the agent to read email, manage the calendar, or reach any external system — "תחבר לו את המייל", "שיראה לי את היומן", "connect gmail to the agent" — or when the agent replies that it has no access to something — "תחבר לו את המייל", "שיראה לי את היומן", "תחבר לסוכן את היומן והמייל", "connect gmail to the agent".
 ---
 
 # חיבור אפליקציות לסוכן
