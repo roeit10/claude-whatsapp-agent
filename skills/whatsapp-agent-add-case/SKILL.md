@@ -59,7 +59,7 @@ description: Teach an existing WhatsApp agent a new capability — receipts from
 
 1. **הבן מה המשתמש רוצה בפועל.** "שיטפל לי במיילים" זה לא הגדרה.
    שאל שאלה אחת ממוקדת.
-2. **בדוק שהחיבורים קיימים** — `composio connections list`. חסר → `whatsapp-agent-connect-app`.
+2. **בדוק שהחיבורים קיימים** — `composio connections list`. חסר → המשתמש מחבר ב-https://dashboard.composio.dev
 3. **כתוב** את הסעיף ל-`CLAUDE.md`.
 4. **בדוק באמת:**
    ```bash

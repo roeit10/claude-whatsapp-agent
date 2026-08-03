@@ -50,7 +50,6 @@ cp -R /tmp/claude-whatsapp-agent/skills/* .claude/skills/
 | הסקיל | מתי משתמשים |
 |---|---|
 | `whatsapp-agent-setup` | ההתקנה הראשונה, מאפס |
-| `whatsapp-agent-connect-app` | לחבר יומן, מייל, או כל מערכת אחרת דרך Composio |
 | `whatsapp-agent-add-case` | ללמד את הסוכן משהו חדש |
 | `whatsapp-agent-doctor` | **כשמשהו לא עובד** — מאבחן ואומר מה נשבר |
 

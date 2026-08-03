@@ -116,10 +116,49 @@ curl -s -X DELETE "https://api.green-api.com/waInstance<ID>/deleteNotification/<
 > הטוקן תמיד בא **לפני** פרמטרים ומזהים בנתיב. סדר הפוך מחזיר 403 של nginx
 > בלי שום הסבר.
 
-## שלב 6 — חיבור מייל ויומן
+## שלב 6 — גישה למערכות חיצוניות (Composio)
 
-הרץ את הסקיל `whatsapp-agent-connect-app`. אפשר גם לדלג ולחזור לזה אחר כך —
-בלי זה הסוכן עדיין עונה, פשוט בלי גישה למייל וליומן.
+אפשר לדלג ולחזור לזה אחר כך — בלי זה הסוכן עדיין עונה, פשוט בלי גישה למייל וליומן.
+
+**זה שלב חד-פעמי.** ההוראה ב-`CLAUDE.md` גנרית, כך שכל מערכת שהמשתמש יחבר
+בעתיד בדשבורד תעבוד מיד — אין מה "לחבר לסוכן" בכל פעם מחדש.
+
+### מק / לינוקס
+```bash
+curl -fsSL https://composio.dev/install | bash    # אם עוד לא מותקן
+~/.composio/composio login                        # מדפיס קישור — תן למשתמש ללחוץ
+~/.composio/composio login --poll                 # ממתין עד 10 דקות ומסיים לבד
+```
+> אל תשתמש ב-`login --agent` — הוא מחבר חשבון סוכן נפרד, לא של המשתמש.
+
+את האפליקציות עצמן המשתמש מחבר ב-https://dashboard.composio.dev.
+**אל תריץ `composio link`** — דורש טרמינל אינטראקטיבי, נתקע, ומשאיר חיבור `INITIALIZING`.
+
+אימות: `~/.composio/composio connections list` → הכל צריך `"status": "ACTIVE"`.
+
+ודא ש-`~/whatsapp-agent/mcp.json` הוא `{"mcpServers":{}}`. זה מכוון — כך הסוכן
+לא רואה MCP servers שהמשתמש הגדיר במקום אחר.
+
+### Windows
+ל-Composio **אין CLI ל-Windows** (המתקין עוצר מפורשות ומפנה ל-WSL).
+במקום זה, `~/whatsapp-agent/mcp.json`:
+```json
+{"mcpServers":{"composio":{"command":"npx","args":["-y","@composio/mcp@latest"],
+ "env":{"COMPOSIO_API_KEY":"<מפתח מהדשבורד>"}}}}
+```
+והתאם את סעיף "גישה למערכות חיצוניות" ב-`CLAUDE.md` לכלים של composio במקום ל-CLI.
+
+> ⚠️ המסלול הזה **לא נבדק על Windows אמיתי**. אמור זאת למשתמש ובדוק מקצה לקצה
+> לפני שאתה מכריז שסיימת.
+
+### בדיקה אמיתית — חובה
+לא מספיק ש-`connections list` מראה ACTIVE. הרץ מתוך תיקיית הסוכן:
+```bash
+cd ~/whatsapp-agent && echo "מה יש לי ביומן השבוע?" | claude -p --output-format json \
+  --model sonnet --effort medium --allowedTools Bash Read Grep \
+  --strict-mcp-config --mcp-config mcp.json
+```
+`num_turns` = 1 → הסוכן לא הריץ כלום. **זו תקלה**, גם אם התשובה נשמעת סבירה.
 
 ## שלב 7 — הפעלה ובדיקה
 

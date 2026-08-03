@@ -101,7 +101,7 @@ cd ~/whatsapp-agent && echo "אמור PONG" | claude -p --output-format json \
 ```bash
 ~/.composio/composio connections list
 ```
-כל מה שנדרש חייב `ACTIVE`. אם לא — הרץ `whatsapp-agent-connect-app`.
+כל מה שנדרש חייב `ACTIVE`. אם לא — המשתמש מחבר בדשבורד: https://dashboard.composio.dev
 
 ---
 
