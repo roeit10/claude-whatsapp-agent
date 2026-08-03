@@ -1,6 +1,6 @@
 # הוספת יכולת לסוכן
 
-מוסיף לסוכן קיים ב-`~/whatsapp-agent/` יכולת חדשה.
+מוסיף לסוכן קיים ב-`./whatsapp-agent/` יכולת חדשה.
 דורש סוכן שכבר עובד — אם לא, קודם ההקמה ב-`SKILL.md`.
 
 ## איך יכולת נוספת עובדת
@@ -58,7 +58,7 @@
 3. **כתוב** את הסעיף ל-`CLAUDE.md`.
 4. **בדוק באמת:**
    ```bash
-   cd ~/whatsapp-agent && echo "<הבקשה כפי שהמשתמש ינסח אותה>" | claude -p --output-format json \
+   cd whatsapp-agent && echo "<הבקשה כפי שהמשתמש ינסח אותה>" | claude -p --output-format json \
      --model sonnet --effort medium --allowedTools Bash Read Grep \
      --strict-mcp-config --mcp-config mcp.json
    ```

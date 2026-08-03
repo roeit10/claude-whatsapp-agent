@@ -10,7 +10,7 @@
 ## 1. התיקייה
 
 ```bash
-ls ~/whatsapp-agent
+ls whatsapp-agent
 ```
 צריכים להיות: `poller.mjs`, `.env`, `CLAUDE.md`, `mcp.json`, `logs/`, `state/`.
 
@@ -19,7 +19,7 @@ ls ~/whatsapp-agent
 ## 2. הקונפיג
 
 ```bash
-grep -c . ~/whatsapp-agent/.env
+grep -c . ./whatsapp-agent/.env
 ```
 ודא שקיימים `GREEN_API_ID_INSTANCE`, `GREEN_API_TOKEN`, `OWNER_CHAT_ID`.
 **אל תדפיס את הטוקן** בפלט שהמשתמש רואה.
@@ -62,12 +62,12 @@ curl -s "https://api.green-api.com/waInstance<ID>/receiveNotification/<TOKEN>?re
 ```bash
 pgrep -fl poller.mjs        # מק/לינוקס
 ```
-לא רץ → הפעל `cd ~/whatsapp-agent && node poller.mjs` וקרא את הפלט.
+לא רץ → הפעל `cd whatsapp-agent && node poller.mjs` וקרא את הפלט.
 
 ## 7. הלוג — כאן נמצאות רוב התשובות
 
 ```bash
-tail -20 ~/whatsapp-agent/logs/messages-$(date +%F).jsonl
+tail -20 ./whatsapp-agent/logs/messages-$(date +%F).jsonl
 ```
 
 | `kind` | משמעות |
@@ -85,7 +85,7 @@ tail -20 ~/whatsapp-agent/logs/messages-$(date +%F).jsonl
 ## 8. Claude Code
 
 ```bash
-cd ~/whatsapp-agent && echo "אמור PONG" | claude -p --output-format json \
+cd whatsapp-agent && echo "אמור PONG" | claude -p --output-format json \
   --model sonnet --strict-mcp-config --mcp-config mcp.json
 ```
 נכשל → הבעיה ב-Claude Code עצמו, לא בסוכן. בדוק `claude --version` ו-`claude auth`.

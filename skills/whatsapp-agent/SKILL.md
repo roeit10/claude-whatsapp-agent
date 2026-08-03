@@ -26,18 +26,20 @@ description: Build, extend and fix a personal WhatsApp agent that runs on the us
 
 ---
 
-## אם `~/whatsapp-agent` כבר קיים
+## איפה מתקינים
 
-**אל תדווח סטטוס ותעצור.** המשתמש ביקש להקים סוכן; תסיים את המשימה.
+**בתיקייה שהמשתמש עובד בה עכשיו**, תת-תיקייה בשם `whatsapp-agent/`.
+לא בבית, לא בנתיב גלובלי. כל פרויקט מקבל סוכן משלו.
 
-בדוק מה יש שם:
-- `.env` עם `OWNER_CHAT_ID` אמיתי + `poller.mjs` + התהליך רץ + יש `sent` בלוג
-  → **הסוכן עובד.** אמור זאת, ועבור לשלב 6 (מערכות חיצוניות) ולשלב 7 (בדיקה).
-- קיים אבל חלקי או שבור (אין `.env`, `OWNER_CHAT_ID=PENDING`, `loop_error` חוזר)
-  → **השלם את מה שחסר.** אל תתחיל מאפס ואל תדרוס.
-- המשתמש רוצה התקנה נקייה
-  → **הצע לו לשנות שם** (`mv ~/whatsapp-agent ~/whatsapp-agent-old`) ואז המשך רגיל.
-    **אל תמחק** את התיקייה הישנה — יש בה `.env` ולוגים.
+**אל תחפש התקנות קודמות במקומות אחרים ואל תדווח עליהן.**
+המשתמש ביקש להקים סוכן — תקים אותו כאן.
+
+היוצא מן הכלל היחיד: אם `./whatsapp-agent` כבר קיים **בתיקייה הזו**, שאל את
+המשתמש אם להמשיך אותו או לבחור שם אחר. אל תמחק ואל תדרוס — יש שם `.env` ולוגים.
+
+> שים לב: כשתיקיית הסוכן יושבת בתוך פרויקט, ההרצה תטען גם `CLAUDE.md` של
+> הפרויקט שמעליה, לא רק את זה של הסוכן. בדרך כלל זה לא מזיק. אם הפרויקט מכיל
+> הנחיות שמתנגשות עם התנהגות הסוכן — התקן בתיקייה נפרדת ונקייה.
 
 ---
 
@@ -79,10 +81,10 @@ curl -s "https://api.green-api.com/waInstance<ID>/getStateInstance/<TOKEN>"
 ## שלב 3 — יצירת התיקייה
 
 ```bash
-mkdir -p ~/whatsapp-agent/{logs,state}
+mkdir -p whatsapp-agent/{logs,state}
 ```
 
-`~/whatsapp-agent/.env`:
+`./whatsapp-agent/.env`:
 ```
 GREEN_API_ID_INSTANCE=<ID>
 GREEN_API_TOKEN=<TOKEN>
@@ -90,10 +92,10 @@ OWNER_CHAT_ID=<ימולא בשלב 5 — אל תנחש>
 CLAUDE_MODEL=sonnet
 CLAUDE_EFFORT=medium
 ```
-`chmod 600 ~/whatsapp-agent/.env` (מק/לינוקס).
+`chmod 600 ./whatsapp-agent/.env` (מק/לינוקס).
 
 התבניות נמצאות **בתיקיית הסקיל הזה**, תחת `templates/`.
-העתק ל-`~/whatsapp-agent/` את `poller.mjs`, `CLAUDE.md`, ואת סקריפט ההפעלה
+העתק ל-`./whatsapp-agent/` את `poller.mjs`, `CLAUDE.md`, ואת סקריפט ההפעלה
 המתאים — `start.command` במק (ואז `chmod +x`), `start.bat` ב-Windows.
 
 ## שלב 4 — הקשחת ההגדרות
@@ -146,7 +148,7 @@ curl -fsSL https://composio.dev/install | bash    # אם עוד לא מותקן
 **אל תריץ `composio link`** — דורש טרמינל אינטראקטיבי, נתקע, ומשאיר `INITIALIZING`.
 
 אימות: `~/.composio/composio connections list` → הכל `"status": "ACTIVE"`.
-ודא ש-`~/whatsapp-agent/mcp.json` הוא `{"mcpServers":{}}` — מכוון, כדי שהסוכן
+ודא ש-`./whatsapp-agent/mcp.json` הוא `{"mcpServers":{}}` — מכוון, כדי שהסוכן
 לא יראה MCP servers שהמשתמש הגדיר במקום אחר.
 
 **Windows:** ל-Composio אין CLI ל-Windows (המתקין עוצר ומפנה ל-WSL). במקום:
@@ -160,13 +162,13 @@ curl -fsSL https://composio.dev/install | bash    # אם עוד לא מותקן
 ## שלב 7 — הפעלה ובדיקה
 
 ```bash
-cd ~/whatsapp-agent && node poller.mjs
+cd whatsapp-agent && node poller.mjs
 ```
 בקש מהמשתמש לשלוח `היי` מהמספר האישי. תוך ~10 שניות תחזור תשובה.
 
 **בדיקת גישה אמיתית** (אם חובר Composio):
 ```bash
-cd ~/whatsapp-agent && echo "מה יש לי ביומן השבוע?" | claude -p --output-format json \
+cd whatsapp-agent && echo "מה יש לי ביומן השבוע?" | claude -p --output-format json \
   --model sonnet --effort medium --allowedTools Bash Read Grep \
   --strict-mcp-config --mcp-config mcp.json
 ```
@@ -190,5 +192,5 @@ cd ~/whatsapp-agent && echo "מה יש לי ביומן השבוע?" | claude -p 
 - אל תפעיל שליחה יזומה לאנשים אחרים כברירת מחדל
 - אל תוסיף cron או תזמון — אין הרצה מתוזמנת בגרסה הזו
 
-הכל נרשם ב-`~/whatsapp-agent/logs/messages-YYYY-MM-DD.jsonl` — **כולל** מה שנזרק.
+הכל נרשם ב-`./whatsapp-agent/logs/messages-YYYY-MM-DD.jsonl` — **כולל** מה שנזרק.
 כשמשהו לא מסתדר, `references/troubleshooting.md` לפני כל ניחוש.
