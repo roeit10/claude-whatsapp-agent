@@ -74,8 +74,10 @@ CLAUDE_EFFORT=medium
 ```
 `chmod 600 ~/whatsapp-agent/.env` (מק/לינוקס).
 
-העתק לשם את `templates/poller.mjs`, `templates/CLAUDE.md`,
-ואת סקריפט ההפעלה המתאים (`start.command` במק, `start.bat` ב-Windows).
+התבניות נמצאות **בתיקיית הסקיל הזה**, תחת `templates/`.
+העתק ל-`~/whatsapp-agent/` את `templates/poller.mjs`, `templates/CLAUDE.md`,
+ואת סקריפט ההפעלה המתאים — `start.command` במק, `start.bat` ב-Windows.
+במק: `chmod +x ~/whatsapp-agent/start.command`.
 
 ## שלב 4 — הקשחת ההגדרות
 

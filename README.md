@@ -13,20 +13,35 @@
 
 ## התקנה
 
-מהתיקייה של הפרויקט שלכם:
+**הדרך הקלה** — פותחים Claude Code בתיקיית הפרויקט ואומרים לו:
+
+> תתקין לי את הסקילים מ-https://github.com/roeit10/claude-whatsapp-agent
+
+**או ידנית**, מהתיקייה של הפרויקט:
 
 ```bash
 git clone https://github.com/roeit10/claude-whatsapp-agent.git /tmp/claude-whatsapp-agent
 mkdir -p .claude/skills
 cp -R /tmp/claude-whatsapp-agent/skills/* .claude/skills/
-cp -R /tmp/claude-whatsapp-agent/templates .claude/skills/whatsapp-agent-setup/
 ```
 
-ואז פותחים Claude Code ואומרים לו:
+התבניות יושבות בתוך `whatsapp-agent-setup/templates/`, אז ההעתקה הזאת מביאה הכל.
+
+ואז אומרים ל-Claude:
 
 > תתקין לי סוכן וואטסאפ
 
 זהו. הוא לוקח מכאן.
+
+---
+
+## הוראות ל-Claude (אם הופנית לכאן עם לינק)
+
+1. `git clone https://github.com/roeit10/claude-whatsapp-agent.git` לתיקייה זמנית
+2. העתק את **כל** התיקיות מתוך `skills/` אל `.claude/skills/` של הפרויקט הנוכחי
+   (כולל `whatsapp-agent-setup/templates/` — אל תשמיט אותה)
+3. אשר למשתמש אילו סקילים הותקנו, והצע להתחיל ב-`whatsapp-agent-setup`
+4. אל תריץ את ההתקנה של הסוכן עצמו לפני שהמשתמש ביקש
 
 ---
 
