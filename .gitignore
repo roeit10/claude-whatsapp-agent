@@ -1,0 +1,5 @@
+.env
+logs/
+state/
+mcp.json
+.DS_Store

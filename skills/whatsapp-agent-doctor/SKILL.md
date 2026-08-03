@@ -1,0 +1,128 @@
+---
+name: whatsapp-agent-doctor
+description: Diagnose a WhatsApp agent that is not working — no replies, wrong replies, "something went wrong", OAuth errors, duplicate messages, or the agent answering without using its tools. Runs an ordered set of checks against Green API, the lock, the folder, Claude Code and Composio, and reports what is broken and how to fix it. Use whenever the user says the agent stopped working, is stuck, or behaves oddly.
+---
+
+# אבחון סוכן וואטסאפ
+
+הרץ את הבדיקות **לפי הסדר**. כל אחת מוציאה מהמשחק שכבה שלמה,
+ואבחון מהסוף להתחלה מבזבז זמן.
+
+דווח למשתמש בשפה פשוטה — "החיבור לוואטסאפ נופל", לא "getStateInstance מחזיר notAuthorized".
+
+---
+
+## 1. התיקייה
+
+```bash
+ls ~/whatsapp-agent
+```
+צריכים להיות: `poller.mjs`, `.env`, `CLAUDE.md`, `mcp.json`, `logs/`, `state/`.
+
+חסר `mcp.json` → זו לבדה סיבה לשגיאות OAuth. צור `{"mcpServers":{}}`.
+
+## 2. הקונפיג
+
+```bash
+grep -c . ~/whatsapp-agent/.env
+```
+ודא שקיימים `GREEN_API_ID_INSTANCE`, `GREEN_API_TOKEN`, `OWNER_CHAT_ID`.
+**אל תדפיס את הטוקן** בפלט שהמשתמש רואה.
+
+`OWNER_CHAT_ID` חייב להסתיים ב-`@c.us` ולהיות ערך שנקלט מהודעה אמיתית.
+אם הוא נראה כאילו הורכב ממספר טלפון — חשוד. הרץ מחדש את שלב 5 ב-`whatsapp-agent-setup`.
+
+## 3. Green API — חי?
+
+```bash
+curl -s "https://api.green-api.com/waInstance<ID>/getStateInstance/<TOKEN>"
+```
+- `authorized` → תקין
+- `notAuthorized` → הטלפון התנתק. צריך לסרוק QR מחדש
+- `blocked` → **המספר נחסם ע"י וואטסאפ**. עצור, אל תנסה לעקוף, והסבר למשתמש
+- 403 → הטוקן במקום הלא נכון בנתיב. הפורמט: `{method}/{token}/{extra}?{query}`
+
+## 4. הגדרות — ה-webhook חייב להיות ריק
+
+```bash
+curl -s "https://api.green-api.com/waInstance<ID>/getSettings/<TOKEN>"
+```
+- `webhookUrl` **חייב** להיות `""`. אם יש שם כתובת — ההודעות הולכות לשם ולא לתור,
+  וה-poller לא יראה כלום לנצח. זו תקלה שקטה וקלאסית
+- `incomingWebhook` חייב `yes`
+
+## 5. התור
+
+```bash
+curl -s "https://api.green-api.com/waInstance<ID>/receiveNotification/<TOKEN>?receiveTimeout=5"
+```
+- תשובה ריקה + המשתמש לא שלח כלום → תקין
+- תשובה ריקה + המשתמש **כן** שלח → ההודעה הלכה ל-webhook (חזור ל-4), או שה-poller
+  כבר בלע אותה
+- אותה הודעה חוזרת שוב ושוב → משהו לא מוחק. ה-poller מוחק מיד אחרי המשיכה;
+  אם שינו את זה, החזר
+
+## 6. ה-poller רץ?
+
+```bash
+pgrep -fl poller.mjs        # מק/לינוקס
+```
+לא רץ → הפעל `cd ~/whatsapp-agent && node poller.mjs` וקרא את הפלט.
+
+## 7. הלוג — כאן נמצאות רוב התשובות
+
+```bash
+tail -20 ~/whatsapp-agent/logs/messages-$(date +%F).jsonl
+```
+
+| `kind` | משמעות |
+|---|---|
+| `owner_message` | הודעה מהבעלים התקבלה ועברה את הנעילה |
+| `ignored` | נחסם. שדה `reason` אומר למה — **זו התנהגות תקינה** |
+| `claude_done` | הסוכן רץ. בדוק `turns` ו-`denials` |
+| `claude_error` | ההרצה נכשלה. `stderr` מכיל את הסיבה |
+| `send_blocked` | ניסה לשלוח ליעד לא מאושר. **זו התנהגות תקינה** |
+| `loop_error` | תקלת רשת/API |
+
+**`turns: 1` על בקשה שדורשת כלי = הסוכן לא השתמש בכלום.** גם אם התשובה
+נשמעת טוב — היא כנראה מומצאת. בדוק `--allowedTools` ואת `mcp.json`.
+
+## 8. Claude Code
+
+```bash
+cd ~/whatsapp-agent && echo "אמור PONG" | claude -p --output-format json \
+  --model sonnet --strict-mcp-config --mcp-config mcp.json
+```
+נכשל → הבעיה ב-Claude Code עצמו, לא בסוכן. בדוק `claude --version` ו-`claude auth`.
+
+## 9. Composio
+
+מק/לינוקס:
+```bash
+~/.composio/composio connections list
+```
+כל מה שנדרש חייב `ACTIVE`. אם לא — הרץ `whatsapp-agent-connect-app`.
+
+---
+
+## תקלות לפי תסמין
+
+**"משהו השתבש בהרצת הסוכן"** → `claude_error` בלוג, קרא `stderr`.
+אם כתוב `Invalid MCP configuration` ובנתיב מופיע **טקסט ההודעה של המשתמש** —
+הפרומפט נבלע כארגומנט. הוא חייב לעבור ב-stdin, לא ב-argv.
+
+**הסוכן שותק לגמרי** → 3 → 4 → 7. הכי סביר: `webhookUrl` לא ריק, או `OWNER_CHAT_ID` לא תואם.
+
+**הסוכן מבקש להתחבר / מדבר על OAuth** → הוא ראה MCP servers של המשתמש.
+`mcp.json` + `--strict-mcp-config`.
+
+**הודעות מסוימות לא מגיעות** → חפש `ignored` עם `unsupported`.
+טקסט מגיע גם כ-`textMessage` וגם כ-`extendedTextMessage`; שניהם חייבים להיתמך.
+מדיה וקוליות לא נתמכות ב-v1.
+
+**הכל האט מאוד** → `CLAUDE_EFFORT` גבוה מדי, או `CLAUDE.md` תפח.
+
+## כלל
+
+אם משהו נראה תקין אבל לא עובד — **תאמין ללוג, לא להסבר.**
+הלוג רושם כל הודעה שנכנסה, כולל את אלה שנזרקו.
