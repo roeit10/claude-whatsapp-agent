@@ -25,7 +25,7 @@ mkdir -p .claude/skills
 cp -R /tmp/claude-whatsapp-agent/skills/* .claude/skills/
 ```
 
-התבניות יושבות בתוך `whatsapp-agent-setup/templates/`, אז ההעתקה הזאת מביאה הכל.
+התבניות וקבצי העזר יושבים בתוך `skills/whatsapp-agent/`, אז ההעתקה הזאת מביאה הכל.
 
 ואז אומרים ל-Claude:
 
@@ -39,19 +39,21 @@ cp -R /tmp/claude-whatsapp-agent/skills/* .claude/skills/
 
 1. `git clone https://github.com/roeit10/claude-whatsapp-agent.git` לתיקייה זמנית
 2. העתק את **כל** התיקיות מתוך `skills/` אל `.claude/skills/` של הפרויקט הנוכחי
-   (כולל `whatsapp-agent-setup/templates/` — אל תשמיט אותה)
-3. אשר למשתמש אילו סקילים הותקנו, והצע להתחיל ב-`whatsapp-agent-setup`
+   (כולל `whatsapp-agent/templates/` ו-`references/` — אל תשמיט אותן)
+3. אשר למשתמש אילו סקילים הותקנו, והצע להתחיל בהקמת הסוכן
 4. אל תריץ את ההתקנה של הסוכן עצמו לפני שהמשתמש ביקש
 
 ---
 
-## הסקילים
+## הסקיל
 
-| הסקיל | מתי משתמשים |
+סקיל אחד — `whatsapp-agent` — שמכסה את כל מחזור החיים:
+
+| הבקשה | מה קורה |
 |---|---|
-| `whatsapp-agent-setup` | ההתקנה הראשונה, מאפס |
-| `whatsapp-agent-add-case` | ללמד את הסוכן משהו חדש |
-| `whatsapp-agent-doctor` | **כשמשהו לא עובד** — מאבחן ואומר מה נשבר |
+| *תתקין לי סוכן וואטסאפ* | הקמה מאפס |
+| *תוסיף לסוכן יכולת X* | לומד יכולת חדשה |
+| *הסוכן לא עונה* | מאבחן ואומר מה נשבר |
 
 ---
 

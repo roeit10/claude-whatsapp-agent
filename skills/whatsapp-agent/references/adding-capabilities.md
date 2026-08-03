@@ -1,12 +1,7 @@
----
-name: whatsapp-agent-add-case
-description: Teach an existing WhatsApp agent a new capability — receipts from email to the accountant, meetings into the calendar, scanning selected groups, a reminder to a client, a "what did I miss" digest. Writes the instruction into the agent's CLAUDE.md and tests it for real. Use when the user wants the agent to do something new — "שיאסוף לי קבלות", "שיסרוק קבוצות", "תוסיף לו יכולת".
----
-
 # הוספת יכולת לסוכן
 
 מוסיף לסוכן קיים ב-`~/whatsapp-agent/` יכולת חדשה.
-דורש סוכן שכבר עובד — אם לא, קודם `whatsapp-agent-setup`.
+דורש סוכן שכבר עובד — אם לא, קודם ההקמה ב-`SKILL.md`.
 
 ## איך יכולת נוספת עובדת
 
