@@ -93,7 +93,7 @@ CLAUDE_MODEL=sonnet
 CLAUDE_EFFORT=medium
 # TIMEOUT_MINUTES=0   # 0/לא מוגדר = בלי מגבלת זמן. ריצה ארוכה לא תיקטע באמצע
 ```
-`chmod 600 ./whatsapp-agent/.env` (מק/לינוקס).
+`chmod 600 ./whatsapp-agent/.env` (מק/לינוקס; ב-Windows דלג).
 
 התבניות נמצאות **בתיקיית הסקיל הזה**, תחת `templates/`.
 העתק ל-`./whatsapp-agent/` את `poller.mjs`, `CLAUDE.md`, ואת סקריפט ההפעלה
@@ -205,8 +205,16 @@ launchctl list | grep whatsapp-agent
 
 > `setsid` לא קיים במק. אם צריך להפעיל ידנית ברקע: `nohup node poller.mjs >> logs/poller.out 2>&1 &`
 
-**Windows:** Task Scheduler, טריגר At log on, פעולה `node`, ארגומנט `poller.mjs`,
-"Start in" = תיקיית הסוכן.
+**Windows:** מתיקיית הסוכן:
+```powershell
+powershell -ExecutionPolicy Bypass -File autostart.windows.ps1
+```
+רושם Scheduled Task שעולה בכניסה למשתמש, מרים את עצמו אם נפל
+(`RestartCount`, המקבילה ל-`KeepAlive`), ולא קוטע ריצות ארוכות
+(`ExecutionTimeLimit 0`). הסרה: `Unregister-ScheduledTask -TaskName "WhatsAppAgent" -Confirm:$false`
+
+> ⚠️ הסקריפט ל-Windows **טרם נבדק על מכונת Windows אמיתית**. אם אתה מריץ אותו
+> בפעם הראשונה — אמור זאת למשתמש, ואמת שהתהליך באמת רץ אחרי ההרשמה.
 
 **חשוב:** לפני שמתקינים הפעלה אוטומטית — **תעצור poller שרץ ידנית.**
 שני pollers על אותו אינסטנס מושכים מאותו תור ועונים פעמיים. ה-poller מזהה את זה
