@@ -19,18 +19,25 @@ function check(name, ok, detail = '') {
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** A fake `claude` on PATH: returns the JSON shape the poller parses. */
+/**
+ * A fake `claude` on PATH returning the JSON shape the poller parses.
+ * The payload is emitted by node, not by the shell: cmd.exe mangles quotes in `echo`,
+ * which silently produced invalid JSON and looked like a poller bug.
+ */
 function makeStubClaude(dir) {
   mkdirSync(dir, { recursive: true });
   const payload = JSON.stringify({
     is_error: false, num_turns: 2, session_id: 'stub-session',
     total_cost_usd: 0, result: 'STUB_REPLY',
   });
+  const js = join(dir, 'stub-claude.mjs');
+  writeFileSync(js, `process.stdin.resume();\nprocess.stdin.on('end', () => {});\n` +
+    `console.log(${JSON.stringify(payload)});\n`);
   if (WIN) {
-    writeFileSync(join(dir, 'claude.cmd'), `@echo off\r\necho ${payload.replace(/"/g, '\\"')}\r\n`);
+    writeFileSync(join(dir, 'claude.cmd'), `@echo off\r\nnode "%~dp0stub-claude.mjs" %*\r\n`);
   } else {
     const f = join(dir, 'claude');
-    writeFileSync(f, `#!/bin/sh\ncat > /dev/null\ncat <<'EOF'\n${payload}\nEOF\n`);
+    writeFileSync(f, `#!/bin/sh\nexec node "$(dirname "$0")/stub-claude.mjs" "$@"\n`);
     chmodSync(f, 0o755);
   }
   return dir;
@@ -141,9 +148,10 @@ const stub = makeStubClaude(join(TMP, 'stub'));
 if (WIN) {
   const ps = join(REPO, 'skills', 'whatsapp-agent', 'templates', 'autostart.windows.ps1');
   const r = spawnSync('powershell', ['-NoProfile', '-Command',
-    `$ErrorActionPreference='Stop';` +
-    `$null=[System.Management.Automation.Language.Parser]::ParseFile('${ps}',[ref]$null,[ref]$errs);` +
-    `if($errs.Count -gt 0){exit 1}`], { encoding: 'utf8' });
+    `$errs = $null;` +
+    `$null = [System.Management.Automation.Language.Parser]::ParseFile('${ps}', [ref]$null, [ref]$errs);` +
+    `if ($errs -and $errs.Count -gt 0) { $errs | ForEach-Object { $_.Message }; exit 1 }`],
+    { encoding: 'utf8' });
   check('autostart.windows.ps1 parses', r.status === 0, (r.stderr || '').trim().slice(0, 200));
 
   const dir = makeAgent(join(TMP, 'autostart'));
@@ -154,9 +162,17 @@ if (WIN) {
   check('scheduled task registers', /task state/i.test(reg.stdout || ''),
     (reg.stdout + reg.stderr).trim().slice(-200));
   spawnSync('powershell', ['-NoProfile', '-Command',
-    `Unregister-ScheduledTask -TaskName WhatsAppAgentCITest -Confirm:$false -ErrorAction SilentlyContinue`]);
+    `Stop-ScheduledTask -TaskName WhatsAppAgentCITest -ErrorAction SilentlyContinue;` +
+    `Unregister-ScheduledTask -TaskName WhatsAppAgentCITest -Confirm:$false -ErrorAction SilentlyContinue;` +
+    `Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" |` +
+    ` Where-Object { $_.CommandLine -like '*poller.mjs*' } |` +
+    ` ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`]);
+  await sleep(2000);
 }
 
-rmSync(TMP, { recursive: true, force: true });
+// Windows keeps handles open briefly after a process dies; cleanup is best-effort
+// and must never turn a green run red.
+try { rmSync(TMP, { recursive: true, force: true, maxRetries: 5, retryDelay: 500 }); }
+catch (e) { console.log(`(cleanup skipped: ${e.code})`); }
 console.log(failures ? `\n${failures} FAILED` : '\nall green');
 process.exit(failures ? 1 : 0);
