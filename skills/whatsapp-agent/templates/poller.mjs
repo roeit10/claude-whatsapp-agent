@@ -48,7 +48,8 @@ const MODEL = env.CLAUDE_MODEL || 'sonnet';
 const EFFORT = env.CLAUDE_EFFORT || 'medium';
 // Headless runs get no interactive permission prompt, so tools must be granted up front
 // or the agent silently answers without ever calling them (num_turns stays 1).
-const ALLOWED_TOOLS = (env.ALLOWED_TOOLS || 'Bash Read Write Edit Glob Grep WebFetch WebSearch')
+const ALLOWED_TOOLS = (env.ALLOWED_TOOLS ||
+  'Bash Read Write Edit Glob Grep WebFetch WebSearch mcp__composio')
   .split(/[\s,]+/).filter(Boolean);
 
 // 0 (default) = no time limit. Set a number of minutes only to impose one.

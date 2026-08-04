@@ -86,7 +86,8 @@ cp -R /tmp/claude-whatsapp-agent/skills/* .claude/skills/
 - **Claude Code**
 - **מספר טלפון ייעודי** — לא המספר האישי שלכם. הסוכן יושב על המספר.
 - **חשבון Green API** — [console.green-api.com](https://console.green-api.com), יש תוכנית חינמית
-- **Composio** (לא חובה) — לחיבור יומן ומייל. [dashboard.composio.dev](https://dashboard.composio.dev)
+- **Composio** (לא חובה) — לחיבור יומן ומייל, דרך HTTP בכל מערכת הפעלה.
+  [dashboard.composio.dev](https://dashboard.composio.dev)
 
 ---
 
@@ -98,12 +99,9 @@ cp -R /tmp/claude-whatsapp-agent/skills/* .claude/skills/
 **Green API הוא לא הערוץ הרשמי של Meta.** זה פתרון שמתחבר לוואטסאפ שלכם.
 השתמשו בו על מספר ייעודי, ואל תשלחו דרכו הודעות המוניות.
 
-**מצב Windows.** הסוכן עצמו **נבדק על Windows אמיתי ב-CI ועובד** —
-הרצה, נעילה, `/reset`, שמירת סשן והפעלה אוטומטית דרך Scheduled Task.
-
-**מה שלא עובד ב-Windows: Composio.** ל-Composio אין CLI ל-Windows,
-ו-`@composio/mcp` ב-npm מוצא משימוש ואינו שרת MCP. כלומר ב-Windows
-הסוכן עובד — אבל **בלי גישה למייל וליומן**, אלא אם מתקינים WSL.
+**Windows נתמך במלואו.** הסוכן נבדק על Windows אמיתי ב-CI — הרצה, נעילה,
+`/reset`, שמירת סשן והפעלה אוטומטית דרך Scheduled Task. החיבור למייל
+וליומן נעשה דרך HTTP ולכן עובד זהה בכל מערכת הפעלה, בלי התקנה מקומית.
 
 **הסוכן מוגדר לקרוא, לא לשלוח.** אם תבקשו ממנו לשלוח משהו למישהו — הוא יראה לכם
 קודם מה הוא עומד לשלוח ויחכה לאישור.

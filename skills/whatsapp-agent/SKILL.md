@@ -134,43 +134,41 @@ curl -s -X DELETE "https://api.green-api.com/waInstance<ID>/deleteNotification/<
 
 אפשר לדלג ולחזור לזה — בלי זה הסוכן עונה, פשוט בלי גישה למייל וליומן.
 
-**חד-פעמי.** ההוראה ב-`CLAUDE.md` גנרית, כך שכל מערכת שהמשתמש יחבר בעתיד
-בדשבורד תעבוד מיד — אין מה "לחבר לסוכן" בכל פעם.
+**מסלול אחד לכל מערכות ההפעלה: HTTP.** אין התקנה מקומית, אין CLI, לא צריך WSL.
+זה עובד זהה במק, בלינוקס וב-Windows.
 
-**מק / לינוקס:**
-```bash
-curl -fsSL https://composio.dev/install | bash    # אם עוד לא מותקן
-~/.composio/composio login                        # מדפיס קישור — תן למשתמש ללחוץ
-~/.composio/composio login --poll                 # ממתין עד 10 דק' ומסיים לבד
+**1. המשתמש מביא מפתח מהדשבורד**
+https://dashboard.composio.dev → Settings → **Sessions & API Key** → העתק
+(מתחיל ב-`ck_`). את האפליקציות עצמן — Gmail, יומן, כל דבר — הוא מחבר באותו
+דשבורד תחת **Connect Apps**.
+
+**2. כתוב `./whatsapp-agent/mcp.json`**
+```json
+{"mcpServers":{"composio":{"type":"http",
+ "url":"https://connect.composio.dev/mcp",
+ "headers":{"x-consumer-api-key":"<המפתח של המשתמש>"}}}}
 ```
-> אל תשתמש ב-`login --agent` — מחבר חשבון סוכן, לא של המשתמש.
 
-את האפליקציות המשתמש מחבר ב-https://dashboard.composio.dev.
-**אל תריץ `composio link`** — דורש טרמינל אינטראקטיבי, נתקע, ומשאיר `INITIALIZING`.
+> ⚠️ `mcp.json` מכיל עכשיו מפתח. הוא כבר ב-`.gitignore` של הריפו —
+> ודא שהוא לא נכנס לגיט של המשתמש, ואל תדפיס אותו בפלט.
 
-אימות: `~/.composio/composio connections list` → הכל `"status": "ACTIVE"`.
-ודא ש-`./whatsapp-agent/mcp.json` הוא `{"mcpServers":{}}` — מכוון, כדי שהסוכן
-לא יראה MCP servers שהמשתמש הגדיר במקום אחר. הוא נשאר ריק גם ב-Windows.
+**3. אמת בהרצה אמיתית — לא רק שהקובץ נוצר**
+```bash
+cd whatsapp-agent && echo "מה יש לי ביומן מחר?" | claude -p --output-format json \
+  --model sonnet --effort medium --allowedTools Bash Read Grep mcp__composio \
+  --strict-mcp-config --mcp-config mcp.json
+```
+`num_turns` = 1 → הסוכן לא הריץ כלום. **זו תקלה**, גם אם התשובה נשמעת סבירה.
+`permission_denials` לא ריק → חסר `mcp__composio` ב-`--allowedTools`.
 
-**Windows — קרא את זה לפני שאתה מבטיח משהו:**
+---
 
-ל-Composio **אין CLI ל-Windows**. המתקין עוצר מפורשות ומפנה ל-WSL.
-`@composio/mcp` ב-npm **מוצא משימוש ואינו שרת MCP** (הוא CLI שמדפיס מסך עזרה) —
-אל תשתמש בו, זה לא יעבוד.
+**חלופה למק/לינוקס בלבד — ה-CLI.** מי שכבר עובד עם `composio` בטרמינל
+(למשל אחרי שיעור 5 של עדן) יכול להשאיר `mcp.json` ריק ולתת לסוכן להשתמש
+ב-CLI דרך Bash. שתי הדרכים עובדות; מסלול ה-HTTP פשוט יותר ואחיד.
+ב-Windows **אין CLI** — שם רק HTTP.
 
-שתי אפשרויות אמיתיות, לפי סדר העדפה:
-
-1. **לדלג על Composio.** הסוכן עובד מצוין בלעדיו — הוא פשוט לא יגיע למייל
-   וליומן. כל שאר היכולות (קריאה, כתיבה, הרצת פקודות, חיפוש ברשת) עובדות.
-   **זו ברירת המחדל המומלצת ל-Windows.**
-2. **WSL** — ההמלצה הרשמית של Composio. דורש להתקין WSL וגם להריץ שם את
-   Claude Code ואת הסוכן. זה מהלך לא טריוויאלי; הצע אותו רק למי שמבקש מפורשות
-   את המייל והיומן ומוכן להתקנה.
-
-**אל תמציא מסלול שלישי.** אם תמצא חבילה שנראית מתאימה — בדוק שהיא באמת מדברת
-MCP לפני שאתה אומר למשתמש שזה עובד.
-
-הסוכן עצמו (poller, נעילה, `/reset`, הפעלה אוטומטית) **נבדק על Windows אמיתי ועובד**.
+> אל תשתמש ב-`@composio/mcp` מ-npm. הוא מוצא משימוש ואינו שרת MCP.
 
 ## שלב 7 — הפעלה ובדיקה
 
