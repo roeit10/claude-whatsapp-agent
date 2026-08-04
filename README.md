@@ -1,5 +1,7 @@
 # סוכן וואטסאפ אישי עם Claude Code
 
+[![tests](https://github.com/roeit10/claude-whatsapp-agent/actions/workflows/tests.yml/badge.svg)](https://github.com/roeit10/claude-whatsapp-agent/actions/workflows/tests.yml)
+
 סקילים ל-Claude Code שמקימים לכם **סוכן וואטסאפ אישי שרץ על המחשב שלכם**.
 אתם כותבים הודעה רגילה בוואטסאפ — והוא בודק לכם את היומן, מוצא קבלות במייל, ועושה דברים.
 
@@ -96,11 +98,12 @@ cp -R /tmp/claude-whatsapp-agent/skills/* .claude/skills/
 **Green API הוא לא הערוץ הרשמי של Meta.** זה פתרון שמתחבר לוואטסאפ שלכם.
 השתמשו בו על מספר ייעודי, ואל תשלחו דרכו הודעות המוניות.
 
-**מצב Windows.** ה-poller עצמו חוצה-פלטפורמות (Node בלבד, בלי תלויות
-יוניקס), ויש `start.bat` ו-`autostart.windows.ps1` להפעלה אוטומטית.
-**אבל:** ל-Composio אין CLI ל-Windows — יש מסלול חלופי דרך `@composio/mcp`
-שמתועד בסקיל. גם המסלול הזה וגם סקריפט ההפעלה האוטומטית
-**טרם נבדקו על מכונת Windows אמיתית.**
+**מצב Windows.** הסוכן עצמו **נבדק על Windows אמיתי ב-CI ועובד** —
+הרצה, נעילה, `/reset`, שמירת סשן והפעלה אוטומטית דרך Scheduled Task.
+
+**מה שלא עובד ב-Windows: Composio.** ל-Composio אין CLI ל-Windows,
+ו-`@composio/mcp` ב-npm מוצא משימוש ואינו שרת MCP. כלומר ב-Windows
+הסוכן עובד — אבל **בלי גישה למייל וליומן**, אלא אם מתקינים WSL.
 
 **הסוכן מוגדר לקרוא, לא לשלוח.** אם תבקשו ממנו לשלוח משהו למישהו — הוא יראה לכם
 קודם מה הוא עומד לשלוח ויחכה לאישור.
