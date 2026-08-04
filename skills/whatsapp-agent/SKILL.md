@@ -91,6 +91,7 @@ GREEN_API_TOKEN=<TOKEN>
 OWNER_CHAT_ID=<ימולא בשלב 5 — אל תנחש>
 CLAUDE_MODEL=sonnet
 CLAUDE_EFFORT=medium
+# TIMEOUT_MINUTES=0   # 0/לא מוגדר = בלי מגבלת זמן. ריצה ארוכה לא תיקטע באמצע
 ```
 `chmod 600 ./whatsapp-agent/.env` (מק/לינוקס).
 
@@ -177,10 +178,34 @@ cd whatsapp-agent && echo "מה יש לי ביומן השבוע?" | claude -p --
 **בדיקת הנעילה** — זה מה שנותן למשתמש ביטחון: שיבקש מחבר לשלוח הודעה למספר
 הסוכן. לא תחזור תשובה, ובלוג תופיע שורה `ignored`.
 
-## שלב 8 — הפעלה אוטומטית (רשות)
+**ספר למשתמש על `/reset`:** אחרי ריצה ארוכה השיחה תופחת והתשובות מאטות.
+שליחת `/reset` (או "אפס שיחה") מתחילה שיחה נקייה בלי לאבד יכולות או חיבורים.
 
-הצע, אל תכפה. עד שהמשתמש לא מבין את זה, עדיף שיפעיל ידנית ויראה מה קורה.
-מק: LaunchAgent ב-`~/Library/LaunchAgents`. Windows: Task Scheduler, At log on.
+## שלב 8 — הפעלה אוטומטית (מומלץ מאוד)
+
+**זה לא נוי.** ה-poller הוא תהליך רגיל: אם הפעלת אותו מתוך סשן של Claude Code או
+מחלון טרמינל, הוא מת כשהחלון נסגר — והמשתמש מגלה את זה רק כשהסוכן מפסיק לענות,
+בלי שום הודעת שגיאה.
+
+**מק:** קח את `templates/autostart.mac.plist`, החלף `__NODE_PATH__` (מ-`which node`),
+`__AGENT_DIR__` (הנתיב המלא לתיקיית הסוכן) ו-`__HOME__`, ושמור ל-
+`~/Library/LaunchAgents/com.whatsapp-agent.plist`. אז:
+```bash
+launchctl unload ~/Library/LaunchAgents/com.whatsapp-agent.plist 2>/dev/null
+launchctl load  ~/Library/LaunchAgents/com.whatsapp-agent.plist
+launchctl list | grep whatsapp-agent
+```
+`KeepAlive` מרים אותו לבד גם אם ייפול. לרסטארט אחרי שינוי קוד:
+`launchctl kickstart -k gui/$(id -u)/com.whatsapp-agent`
+
+> `setsid` לא קיים במק. אם צריך להפעיל ידנית ברקע: `nohup node poller.mjs >> logs/poller.out 2>&1 &`
+
+**Windows:** Task Scheduler, טריגר At log on, פעולה `node`, ארגומנט `poller.mjs`,
+"Start in" = תיקיית הסוכן.
+
+**חשוב:** לפני שמתקינים הפעלה אוטומטית — **תעצור poller שרץ ידנית.**
+שני pollers על אותו אינסטנס מושכים מאותו תור ועונים פעמיים. ה-poller מזהה את זה
+ומסרב לעלות (`poller.pid` ב-`state/`), אבל עדיף לא להגיע לשם.
 
 ---
 

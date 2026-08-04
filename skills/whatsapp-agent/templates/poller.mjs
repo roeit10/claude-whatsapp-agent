@@ -15,7 +15,7 @@
  */
 
 import { spawn } from 'node:child_process';
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -50,6 +50,9 @@ const EFFORT = env.CLAUDE_EFFORT || 'medium';
 // or the agent silently answers without ever calling them (num_turns stays 1).
 const ALLOWED_TOOLS = (env.ALLOWED_TOOLS || 'Bash Read Write Edit Glob Grep WebFetch WebSearch')
   .split(/[\s,]+/).filter(Boolean);
+
+// 0 (default) = no time limit. Set a number of minutes only to impose one.
+const TIMEOUT_MIN = Number(env.TIMEOUT_MINUTES) || 0;
 
 const MCP_CONFIG_PATH = join(HERE, 'mcp.json');
 if (!existsSync(MCP_CONFIG_PATH)) writeFileSync(MCP_CONFIG_PATH, '{"mcpServers":{}}\n');
@@ -186,13 +189,23 @@ function runClaude(prompt, { kind = 'chat', resume = true } = {}) {
     child.stdout.on('data', (d) => (out += d));
     child.stderr.on('data', (d) => (err += d));
 
-    const timer = setTimeout(() => {
-      child.kill();
-      resolve({ ok: false, text: 'הבקשה לקחה יותר מדי זמן ובוטלה.' });
-    }, 10 * 60 * 1000);
+    // No cap by default. A long job (downloading files, drafting a document) can
+    // legitimately run for many minutes, and killing it mid-way loses all of that work
+    // for nothing. Set TIMEOUT_MINUTES in .env only if you actually want a ceiling.
+    const startedAt = Date.now();
+    const timer = TIMEOUT_MIN > 0
+      ? setTimeout(() => {
+          child.kill();
+          resolve({
+            ok: false,
+            text: `הבקשה רצה מעל ${TIMEOUT_MIN} דקות ובוטלה. אפשר לפצל אותה לכמה בקשות קטנות.`,
+          });
+        }, TIMEOUT_MIN * 60 * 1000)
+      : null;
 
     child.on('close', () => {
-      clearTimeout(timer);
+      if (timer) clearTimeout(timer);
+      const mins = Math.round((Date.now() - startedAt) / 60000);
       let parsed;
       try { parsed = JSON.parse(out); } catch { parsed = null; }
       if (!parsed) {
@@ -204,6 +217,7 @@ function runClaude(prompt, { kind = 'chat', resume = true } = {}) {
       // log the reply and any denials so that is visible instead of guessable.
       log('claude_done', {
         kind,
+        minutes: mins,
         cost: parsed.total_cost_usd,
         turns: parsed.num_turns,
         denials: parsed.permission_denials?.length ? parsed.permission_denials : undefined,
@@ -216,7 +230,28 @@ function runClaude(prompt, { kind = 'chat', resume = true } = {}) {
 
 // ---------------------------------------------------------------- handlers
 
+/**
+ * The chat session grows with every message. After a very long job (many turns, many
+ * files) even "hi" gets slow, because the whole history is reloaded before answering.
+ * Resetting starts a clean session: capabilities and connections are untouched, only
+ * the remembered conversation is dropped.
+ */
+function resetSession() {
+  const f = sessionFile('chat');
+  if (!existsSync(f)) return false;
+  rmSync(f);
+  return true;
+}
+
+const RESET_COMMANDS = ['/reset', 'אפס שיחה', 'שיחה חדשה', 'התחל מחדש'];
+
 async function handleOwnerMessage(text) {
+  if (RESET_COMMANDS.includes(text.trim())) {
+    const had = resetSession();
+    log('session_reset', { had });
+    await send(OWNER, had ? 'התחלנו שיחה חדשה. מה תרצה?' : 'כבר בשיחה נקייה. מה תרצה?');
+    return;
+  }
   const { text: reply } = await runClaude(text, { kind: 'chat', resume: true });
   await send(OWNER, reply);
 }
@@ -254,6 +289,17 @@ async function tick() {
   }
 }
 
+// Two pollers on one instance both pull from the same queue and answer the same
+// message twice. This happens easily: start it by hand, then autostart picks it up too.
+const LOCK = join(STATE_DIR, 'poller.pid');
+if (existsSync(LOCK)) {
+  const old = Number(readFileSync(LOCK, 'utf8').trim());
+  let alive = false;
+  try { process.kill(old, 0); alive = true; } catch { alive = false; }
+  if (alive) die(`poller already running (pid ${old}). Stop it first, or delete ${LOCK}.`);
+}
+writeFileSync(LOCK, String(process.pid));
+
 console.log(`whatsapp agent up — instance ${ID}, owner ${OWNER}, model ${MODEL} (effort ${EFFORT})`);
 console.log(`logs: ${LOG_DIR}`);
 
@@ -261,6 +307,7 @@ let stopping = false;
 for (const sig of ['SIGINT', 'SIGTERM']) {
   process.on(sig, () => { stopping = true; console.log('\nshutting down...'); });
 }
+process.on('exit', () => { try { rmSync(LOCK); } catch {} });
 
 while (!stopping) {
   try {
