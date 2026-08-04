@@ -1,0 +1,8 @@
+# Copy this to the agent folder as `.gitignore`.
+# It lives INSIDE the agent folder, so it protects the credentials no matter what
+# project the folder was installed into.
+
+.env          # Green API instance id + token
+mcp.json      # Composio API key
+logs/         # every message that reached the number, including private ones
+state/        # session ids and the poller pid
