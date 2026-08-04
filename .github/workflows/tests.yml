@@ -20,3 +20,10 @@ jobs:
           node-version: 20
       - name: run poller test suite
         run: node tests/run-tests.mjs
+
+      # The only OS-dependent part of the Composio integration is the HTTPS call.
+      # Skips automatically on forks and PRs, where the secret is not available.
+      - name: composio http route (live)
+        env:
+          COMPOSIO_API_KEY: ${{ secrets.COMPOSIO_API_KEY }}
+        run: node tests/composio-http.mjs
