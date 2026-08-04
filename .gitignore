@@ -3,3 +3,6 @@ logs/
 state/
 mcp.json
 .DS_Store
+
+.test-tmp/
+mock-result.json
