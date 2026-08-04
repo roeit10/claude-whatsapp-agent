@@ -56,7 +56,8 @@ const TIMEOUT_MIN = Number(env.TIMEOUT_MINUTES) || 0;
 
 const MCP_CONFIG_PATH = join(HERE, 'mcp.json');
 if (!existsSync(MCP_CONFIG_PATH)) writeFileSync(MCP_CONFIG_PATH, '{"mcpServers":{}}\n');
-const BASE = `https://api.green-api.com/waInstance${ID}`;
+// GREEN_API_HOST is only overridden in tests; leave it unset in normal use.
+const BASE = `${env.GREEN_API_HOST || 'https://api.green-api.com'}/waInstance${ID}`;
 
 // Layer 3. The owner is always allowed; extra targets are opt-in and explicit.
 const SEND_ALLOWLIST = new Set(
